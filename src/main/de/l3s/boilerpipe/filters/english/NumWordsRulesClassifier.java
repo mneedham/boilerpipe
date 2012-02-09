@@ -17,13 +17,13 @@
  */
 package de.l3s.boilerpipe.filters.english;
 
-import java.util.List;
-import java.util.ListIterator;
-
 import de.l3s.boilerpipe.BoilerpipeFilter;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.document.TextBlock;
 import de.l3s.boilerpipe.document.TextDocument;
+
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Classifies {@link TextBlock}s as content/not-content through rules that have
@@ -82,29 +82,9 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
 
         if (curr.getLinkDensity() <= 0.333333) {
             if (prev.getLinkDensity() <= 0.555556) {
-                if (curr.getNumWords() <= 16) {
-                    if (next.getNumWords() <= 15) {
-                        if (prev.getNumWords() <= 4) {
-                            isContent = false;
-                        } else {
-                            isContent = true;
-                        }
-                    } else {
-                        isContent = true;
-                    }
-                } else {
-                    isContent = true;
-                }
+                isContent = curr.getNumWords() > 16 || next.getNumWords() > 15 || prev.getNumWords() > 4;
             } else {
-                if (curr.getNumWords() <= 40) {
-                    if (next.getNumWords() <= 17) {
-                        isContent = false;
-                    } else {
-                        isContent = true;
-                    }
-                } else {
-                    isContent = true;
-                }
+                isContent = curr.getNumWords() > 40 || next.getNumWords() > 17;
             }
         } else {
             isContent = false;
