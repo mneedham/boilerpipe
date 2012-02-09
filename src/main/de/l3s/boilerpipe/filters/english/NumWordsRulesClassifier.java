@@ -45,18 +45,16 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
 
     public boolean process(TextDocument doc) throws BoilerpipeProcessingException {
         List<TextBlock> textBlocks = doc.getTextBlocks();
-
         ListIterator<TextBlock> it = textBlocks.listIterator();
-        if (!it.hasNext()) {
-            return false;
-        }
+
+        if (!it.hasNext()) return false;
 
         TextBlock currentBlock = it.next();
         TextBlock nextBlock = it.hasNext() ? it.next() : TextBlock.EMPTY_START;
 
         boolean hasChanges = currentBlock.setIsContent(currentBlockHasContent(TextBlock.EMPTY_START, currentBlock, nextBlock));
 
-        if (nextBlock != TextBlock.EMPTY_START) {
+        if (!TextBlock.EMPTY_START.equals(nextBlock)) {
             hasChanges = processBlocks(hasChanges, it, currentBlock, nextBlock);
         }
 
