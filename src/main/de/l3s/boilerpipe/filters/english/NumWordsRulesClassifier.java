@@ -45,36 +45,31 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
 
     public boolean process(TextDocument doc) throws BoilerpipeProcessingException {
         List<TextBlock> textBlocks = doc.getTextBlocks();
-        boolean hasChanges = false;
 
         ListIterator<TextBlock> it = textBlocks.listIterator();
         if (!it.hasNext()) {
             return false;
         }
 
-//        processBlocks(it, TextBlock.EMPTY_START, it.next(), it.hasNext() ? it.next() : TextBlock.EMPTY_START, hasChanges);
-
-        TextBlock prevBlock = TextBlock.EMPTY_START;
         TextBlock currentBlock = it.next();
         TextBlock nextBlock = it.hasNext() ? it.next() : TextBlock.EMPTY_START;
 
-        boolean hasContent = currentBlockHasContent(prevBlock, currentBlock, nextBlock);
-        hasChanges = currentBlock.setIsContent(hasContent) | hasChanges;
+        boolean hasChanges = currentBlock.setIsContent(currentBlockHasContent(TextBlock.EMPTY_START, currentBlock, nextBlock));
 
         if (nextBlock != TextBlock.EMPTY_START) {
-            hasChanges = blah(hasChanges, it, currentBlock, nextBlock);
+            hasChanges = processBlocks(hasChanges, it, currentBlock, nextBlock);
         }
 
         return hasChanges;
     }
 
-    private boolean blah(boolean hasChanges, ListIterator<TextBlock> it, TextBlock currentBlock, TextBlock nextBlock) {
+    private boolean processBlocks(boolean hasChanges, ListIterator<TextBlock> it, TextBlock currentBlock, TextBlock nextBlock) {
         if (!it.hasNext()) {
             return nextBlock.setIsContent(currentBlockHasContent(currentBlock, nextBlock, TextBlock.EMPTY_START)) | hasChanges;
         }
 
         TextBlock newNextBlock = it.next();
-        return blah(nextBlock.setIsContent(currentBlockHasContent(currentBlock, nextBlock, newNextBlock)) | hasChanges, it, nextBlock, newNextBlock);
+        return processBlocks(nextBlock.setIsContent(currentBlockHasContent(currentBlock, nextBlock, newNextBlock)) | hasChanges, it, nextBlock, newNextBlock);
     }
 
 
