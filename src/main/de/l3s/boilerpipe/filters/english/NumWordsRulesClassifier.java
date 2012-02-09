@@ -43,8 +43,7 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
         return INSTANCE;
     }
 
-    public boolean process(TextDocument doc)
-            throws BoilerpipeProcessingException {
+    public boolean process(TextDocument doc) throws BoilerpipeProcessingException {
         List<TextBlock> textBlocks = doc.getTextBlocks();
         boolean hasChanges = false;
 
@@ -52,11 +51,12 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
         if (!it.hasNext()) {
             return false;
         }
+
         TextBlock prevBlock = TextBlock.EMPTY_START;
         TextBlock currentBlock = it.next();
         TextBlock nextBlock = it.hasNext() ? it.next() : TextBlock.EMPTY_START;
 
-        boolean hasContent = classify(prevBlock, currentBlock, nextBlock);
+        boolean hasContent = currentBlockHasContent(prevBlock, currentBlock, nextBlock);
         hasChanges = currentBlock.setIsContent(hasContent)  | hasChanges;
 
         if (nextBlock != TextBlock.EMPTY_START) {
@@ -64,22 +64,18 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
                 prevBlock = currentBlock;
                 currentBlock = nextBlock;
                 nextBlock = it.next();
-                boolean hasContent2 = classify(prevBlock, currentBlock, nextBlock);
-                hasChanges = currentBlock.setIsContent(hasContent2)
-                        | hasChanges;
+                hasChanges = currentBlock.setIsContent(currentBlockHasContent(prevBlock, currentBlock, nextBlock)) | hasChanges;
             }
             prevBlock = currentBlock;
             currentBlock = nextBlock;
             nextBlock = TextBlock.EMPTY_START;
-            boolean hasContent3 = classify(prevBlock, currentBlock, nextBlock);
-            hasChanges = currentBlock.setIsContent(hasContent3)
-                    | hasChanges;
+            hasChanges = currentBlock.setIsContent(currentBlockHasContent(prevBlock, currentBlock, nextBlock)) | hasChanges;
         }
 
         return hasChanges;
     }
 
-    protected boolean classify(final TextBlock prev, final TextBlock curr, final TextBlock next) {
+    private boolean currentBlockHasContent(final TextBlock prev, final TextBlock curr, final TextBlock next) {
         if (fewLinksInCurrentBlock(curr)) {
             if (fewLinksInPreviousBlock(prev)) {
                 return curr.getNumWords() > 16 || next.getNumWords() > 15 || prev.getNumWords() > 4;
@@ -97,5 +93,4 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
     private boolean fewLinksInPreviousBlock(TextBlock prev) {
         return prev.getLinkDensity() <= 0.555556;
     }
-
 }
