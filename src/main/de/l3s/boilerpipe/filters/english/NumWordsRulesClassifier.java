@@ -56,41 +56,46 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
         TextBlock currentBlock = it.next();
         TextBlock nextBlock = it.hasNext() ? it.next() : TextBlock.EMPTY_START;
 
-        hasChanges = classify(prevBlock, currentBlock, nextBlock) | hasChanges;
+        boolean hasContent = classify(prevBlock, currentBlock, nextBlock);
+        hasChanges = currentBlock.setIsContent(hasContent)  | hasChanges;
 
         if (nextBlock != TextBlock.EMPTY_START) {
             while (it.hasNext()) {
                 prevBlock = currentBlock;
                 currentBlock = nextBlock;
                 nextBlock = it.next();
-                hasChanges = classify(prevBlock, currentBlock, nextBlock)
+                boolean hasContent2 = classify(prevBlock, currentBlock, nextBlock);
+                hasChanges = currentBlock.setIsContent(hasContent2)
                         | hasChanges;
             }
             prevBlock = currentBlock;
             currentBlock = nextBlock;
             nextBlock = TextBlock.EMPTY_START;
-            hasChanges = classify(prevBlock, currentBlock, nextBlock)
+            boolean hasContent3 = classify(prevBlock, currentBlock, nextBlock);
+            hasChanges = currentBlock.setIsContent(hasContent3)
                     | hasChanges;
         }
 
         return hasChanges;
     }
 
-    protected boolean classify(final TextBlock prev, final TextBlock curr,
-            final TextBlock next) {
-        final boolean isContent;
-
-        if (curr.getLinkDensity() <= 0.333333) {
-            if (prev.getLinkDensity() <= 0.555556) {
-                isContent = curr.getNumWords() > 16 || next.getNumWords() > 15 || prev.getNumWords() > 4;
+    protected boolean classify(final TextBlock prev, final TextBlock curr, final TextBlock next) {
+        if (fewLinksInCurrentBlock(curr)) {
+            if (fewLinksInPreviousBlock(prev)) {
+                return curr.getNumWords() > 16 || next.getNumWords() > 15 || prev.getNumWords() > 4;
             } else {
-                isContent = curr.getNumWords() > 40 || next.getNumWords() > 17;
+               return curr.getNumWords() > 40 || next.getNumWords() > 17;
             }
-        } else {
-            isContent = false;
         }
+        return false;
+    }
 
-        return curr.setIsContent(isContent);
+    private boolean fewLinksInCurrentBlock(TextBlock curr) {
+        return curr.getLinkDensity() <= 0.333333;
+    }
+
+    private boolean fewLinksInPreviousBlock(TextBlock prev) {
+        return prev.getLinkDensity() <= 0.555556;
     }
 
 }
