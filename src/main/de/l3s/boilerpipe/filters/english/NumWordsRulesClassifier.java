@@ -30,7 +30,7 @@ import java.util.ListIterator;
  * been determined using the C4.8 machine learning algorithm, as described in
  * the paper "Boilerplate Detection using Shallow Text Features" (WSDM 2010),
  * particularly using number of words per block and link density per block.
- * 
+ *
  * @author Christian Kohlschütter
  */
 public class NumWordsRulesClassifier implements BoilerpipeFilter {
@@ -52,35 +52,38 @@ public class NumWordsRulesClassifier implements BoilerpipeFilter {
             return false;
         }
 
+//        processBlocks(it, TextBlock.EMPTY_START, it.next(), it.hasNext() ? it.next() : TextBlock.EMPTY_START, hasChanges);
+
         TextBlock prevBlock = TextBlock.EMPTY_START;
         TextBlock currentBlock = it.next();
         TextBlock nextBlock = it.hasNext() ? it.next() : TextBlock.EMPTY_START;
 
         boolean hasContent = currentBlockHasContent(prevBlock, currentBlock, nextBlock);
-        hasChanges = currentBlock.setIsContent(hasContent)  | hasChanges;
+        hasChanges = currentBlock.setIsContent(hasContent) | hasChanges;
 
         if (nextBlock != TextBlock.EMPTY_START) {
-            while (it.hasNext()) {
-                prevBlock = currentBlock;
-                currentBlock = nextBlock;
-                nextBlock = it.next();
-                hasChanges = currentBlock.setIsContent(currentBlockHasContent(prevBlock, currentBlock, nextBlock)) | hasChanges;
-            }
-            prevBlock = currentBlock;
-            currentBlock = nextBlock;
-            nextBlock = TextBlock.EMPTY_START;
-            hasChanges = currentBlock.setIsContent(currentBlockHasContent(prevBlock, currentBlock, nextBlock)) | hasChanges;
+            hasChanges = blah(hasChanges, it, currentBlock, nextBlock);
         }
 
         return hasChanges;
     }
+
+    private boolean blah(boolean hasChanges, ListIterator<TextBlock> it, TextBlock currentBlock, TextBlock nextBlock) {
+        if (!it.hasNext()) {
+            return nextBlock.setIsContent(currentBlockHasContent(currentBlock, nextBlock, TextBlock.EMPTY_START)) | hasChanges;
+        }
+
+        TextBlock newNextBlock = it.next();
+        return blah(nextBlock.setIsContent(currentBlockHasContent(currentBlock, nextBlock, newNextBlock)) | hasChanges, it, nextBlock, newNextBlock);
+    }
+
 
     private boolean currentBlockHasContent(final TextBlock prev, final TextBlock curr, final TextBlock next) {
         if (fewLinksInCurrentBlock(curr)) {
             if (fewLinksInPreviousBlock(prev)) {
                 return curr.getNumWords() > 16 || next.getNumWords() > 15 || prev.getNumWords() > 4;
             } else {
-               return curr.getNumWords() > 40 || next.getNumWords() > 17;
+                return curr.getNumWords() > 40 || next.getNumWords() > 17;
             }
         }
         return false;
