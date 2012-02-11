@@ -3,12 +3,11 @@ package de.l3s.boilerpipe.filters.english;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.document.TextBlock;
 import de.l3s.boilerpipe.document.TextDocument;
-import de.l3s.boilerpipe.util.UnicodeTokenizer;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
+import static de.l3s.boilerpipe.filters.english.WordRelatedFunctions.wordCount;
 import static java.util.Arrays.asList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -138,24 +137,6 @@ public class NumWordsRulesClassifierTest {
         assertThat(document.getTextBlocks().get(0).isContent(), is(false));
     }
 
-    private int wordCount(String value) {
-        StringBuilder tokenBuffer = new StringBuilder(value);
-        final String[] tokens = UnicodeTokenizer.tokenize(tokenBuffer);
 
-        int wordCount = 0;
-        for (String word : tokens) {
-            if (isWord(word)) {
-                wordCount++;
-            }
-        }
-        return wordCount;
-    }
-
-    private static final Pattern PAT_VALID_WORD_CHARACTER = Pattern.compile("[\\p{L}\\p{Nd}\\p{Nl}\\p{No}]");
-
-
-    private static boolean isWord(final String token) {
-        return PAT_VALID_WORD_CHARACTER.matcher(token).find();
-    }
 
 }
